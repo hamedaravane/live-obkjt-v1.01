@@ -1,40 +1,50 @@
-import React,{useEffect,useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import '../styles/Objkt.css'
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 
 const Objkt = ({data}) => {
-    const [tid,setTid]=useState()
-    useEffect(() => {
-        setTid(data.id)
+
+    const [info, setInfo] = useState()
+
+    useEffect(async () => {
+        setInfo(await getInfo(data.id))
+        console.log(info)
     }, [data])
-    
+
 
     async function royalty() {
-        let amount = await getRoyalty(data.id)
+        let amount = await getInfo(data.id)
         return amount
     }
 
-    async function getRoyalty(id) {
+    async function getInfo(id) {
         let results = await fetch('https://data.objkt.com/v2/graphql', {
             method: 'POST', body: JSON.stringify({
                 query: `query MyQuery {
-                  event_by_pk(id: "${id}") {
-                    id
-                    price
-                    token_pk
-                    token {
-                      royalties {
-                        amount
-                        decimals
-                      }
-                    }
-                  }
-                }`
+  listing_by_pk(id: "${id}") {
+    id
+    amount
+    amount_left
+    price
+    marketplace {
+      group
+      name
+      subgroup
+    }
+    token {
+      royalties {
+        amount
+        decimals
+      }
+    }
+  }
+}
+`
             })
         })
-        let royalty = await results.json();
-        console.log(royalty.data.event_by_pk.id)
-        return royalty.data.event_by_pk.id
+        let info = await results.json();
+        console.log(info.data)
+        return info.data
     }
 
     function image() {
@@ -126,7 +136,7 @@ const Objkt = ({data}) => {
         </div>
         <div className='marketplace_and_royality'>
             <p>{marketplaceName()}</p>
-            <p>Royalty: {tid}</p>
+            <p>Royalty: {info.data.listing_by_pk.price}</p>
         </div>
 
 
